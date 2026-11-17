@@ -1,0 +1,31 @@
+# Copy to .github/workflows/dependency-review.yml. Produces the `dependency-review` status check.
+#
+# MERGE QUEUE: uncomment the three `# MQ:` blocks (merge_group trigger, base-ref, head-ref) only when the
+# default branch uses a merge queue. A required check must also run in the queue, otherwise queued PRs
+# wait for it forever. Without a merge queue, leave them commented out.
+name: 'Dependency Review'
+on:
+  pull_request:
+  # MQ: merge_group has no PR context, so base-ref/head-ref are passed explicitly below.
+  # merge_group:
+  #   types: [checks_requested]
+
+permissions:
+  contents: read
+  pull-requests: write  # comment-summary-in-pr posts the summary comment
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+      - name: Dependency Review
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+        with:
+          # MQ: auto-detected on pull_request; set from the merge group's base/head SHAs in the queue.
+          # base-ref: ${{ github.event_name == 'merge_group' && github.event.merge_group.base_sha || '' }}
+          # head-ref: ${{ github.event_name == 'merge_group' && github.event.merge_group.head_sha || '' }}
+          fail-on-severity: high
+          # Posts the summary on pull_request; skipped in the merge queue (no PR to comment on).
+          comment-summary-in-pr: always
